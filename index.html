@@ -15,7 +15,7 @@
       <h1>ANDREWWELCOME</h1>
       <p>Gra gramatyczna｜Przeciągnij klocki i ułóż poprawne zdanie.</p>
       <p><b>然後 / 後來 / 以後</b>｜<b>才</b>｜<b>被</b>｜綜合翻譯</p>
-      <button class="btn" onclick="startGame()">Dalej</button>
+      <button id="startBtn" type="button" class="btn" onclick="window.startGame && window.startGame(); return false;">Dalej</button>
     </div>
   </div>
   <div id="game" class="hidden">
@@ -1265,7 +1265,21 @@ const rawQuestions = [
 const questions = rawQuestions.map((q,i)=>({...q,id:i}));
 let idx=0, correct=0, locked=false;
 function shuffle(arr){let a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-function startGame(){document.getElementById('cover').classList.add('hidden');document.getElementById('game').classList.remove('hidden');render()}
+function startGame(){
+  const cover=document.getElementById('cover');
+  const game=document.getElementById('game');
+  if(cover){cover.classList.add('hidden'); cover.style.display='none';}
+  if(game){game.classList.remove('hidden'); game.style.display='block';}
+  render();
+}
+window.startGame=startGame;
+document.addEventListener('DOMContentLoaded',function(){
+  const b=document.getElementById('startBtn');
+  if(b){
+    b.addEventListener('click',function(e){e.preventDefault(); startGame();});
+    b.addEventListener('touchend',function(e){e.preventDefault(); startGame();},{passive:false});
+  }
+});
 function updateTop(){document.getElementById('count').textContent=(idx+1)+' / '+questions.length;document.getElementById('points').textContent=Math.round(correct/questions.length*100)+' pkt';document.getElementById('bar').style.width=(idx/questions.length*100)+'%'}
 function render(){locked=false;updateTop();const q=questions[idx];const el=document.getElementById('questionCard');let prompt='';
  if(q.mode==='combine'){prompt=`<div class="twobox"><div class="mini"><b>A</b><div class="zh">${q.a}</div></div><div class="mini"><b>B</b><div class="zh">${q.b}</div></div></div>`}
@@ -1275,12 +1289,62 @@ function render(){locked=false;updateTop();const q=questions[idx];const el=docum
  const bank=document.getElementById('wordbank');shuffle([...q.answer,...q.extras]).forEach((w,i)=>bank.appendChild(makeTile(w,i)))}
 function makeTile(word,i){const d=document.createElement('div');d.className='tile';d.draggable=true;d.dataset.word=word;d.id='tile_'+idx+'_'+i;d.textContent=word;d.ondragstart=e=>e.dataTransfer.setData('text/plain',d.id);d.onclick=()=>{if(locked)return;const box=document.getElementById('answerBox'),bank=document.getElementById('wordbank');(d.parentElement.id==='wordbank'?box:bank).appendChild(d)};return d}
 function dropTile(e){if(locked)return;const id=e.dataTransfer.getData('text/plain');const tile=document.getElementById(id);if(tile)e.currentTarget.appendChild(tile)}
+function cleanTokens(arr){
+  return arr.filter(w=>w!=='' && w!=='，' && w!=='。' && w!==',' && w!=='.');
+}
+function sameClean(a,b){
+  const aa=cleanTokens(a).join('|');
+  const bb=cleanTokens(b).join('|');
+  return aa===bb;
+}
+function insertAfter(arr,target,word){
+  const out=[];
+  arr.forEach(x=>{out.push(x); if(x===target) out.push(word);});
+  return out;
+}
+function makeFlexibleAnswers(q){
+  const ans=q.answer.slice();
+  const variants=[ans];
+  // 1. 時間順序題：允許「才」加在第二個動作前，例如：先買票，然後才進去。
+  ['然後','後來','以後'].forEach(c=>{
+    if(ans.includes(c)) variants.push(insertAfter(ans,c,'才'));
+  });
+  // 2. 「A 以後，主詞 B」和「主詞 A 以後 B」都可以。
+  const idxAfter=ans.indexOf('以後');
+  if(idxAfter>1){
+    const subj=ans[0];
+    const before=ans.slice(1,idxAfter+1);
+    const after=ans.slice(idxAfter+1);
+    variants.push([...before,'，',subj,...after]);
+    variants.push([...before,subj,...after]);
+    variants.push([...before,'，',subj,'才',...after]);
+    variants.push([...before,subj,'才',...after]);
+  }
+  // 3. 「先...然後...」也允許「先...然後才...」。
+  const idxRan=ans.indexOf('然後');
+  if(idxRan>=0 && idxRan<ans.length-1){
+    variants.push([...ans.slice(0,idxRan+1),'才',...ans.slice(idxRan+1)]);
+  }
+  // 4. 若題目本身是「才」關卡，也接受逗號有無差異。
+  return variants;
+}
+function isAcceptable(got,q){
+  if(sameClean(got,q.answer)) return true;
+  const variants=makeFlexibleAnswers(q);
+  for(const v of variants){
+    if(sameClean(got,v)) return true;
+  }
+  return false;
+}
 function checkAnswer(){if(locked)return;locked=true;const q=questions[idx];const box=document.getElementById('answerBox');const got=[...box.querySelectorAll('.tile')].map(t=>t.dataset.word);const fb=document.getElementById('fb');const answerText=q.answer.join('');
- if(got.join('|')===q.answer.join('|')){correct++;box.classList.add('correctFrame');fb.innerHTML=`<span class="ok">Dobrze! ✅</span><div class="zh">${answerText}</div>`}
- else{box.classList.add('wrongFrame');fb.innerHTML=`<span class="bad">Źle. ❌ Poprawna odpowiedź:</span><div class="zh">${answerText}</div>`}
+ if(isAcceptable(got,q)){correct++;box.classList.add('correctFrame');fb.innerHTML=`<span class="ok">Dobrze! ✅ To zdanie jest gramatycznie OK.</span><div class="zh">${got.join('')}</div>`}
+ else{box.classList.add('wrongFrame');fb.innerHTML=`<span class="bad">Źle. ❌ Przykładowa poprawna odpowiedź:</span><div class="zh">${answerText}</div><div class="meta">Uwaga: w niektórych pytaniach więcej niż jedna kolejność może być poprawna, ale ta wersja brzmiała nienaturalnie albo gramatycznie nie pasowała.</div>`}
  document.getElementById('nextBtn').classList.remove('hidden');updateTop()}
 function nextQ(){idx++;if(idx>=questions.length)finish();else render()}
 function finish(){const finalScore=Math.round(correct/questions.length*100);document.getElementById('bar').style.width='100%';document.getElementById('points').textContent=finalScore+' pkt';document.getElementById('count').textContent='Koniec';document.getElementById('questionCard').innerHTML=`<div class="result"><h2>Wynik końcowy</h2><div class="score">${finalScore}/100</div><p class="qtitle">${finalScore>=90?'Świetnie!':finalScore>=75?'Bardzo dobrze!':finalScore>=60?'Nieźle, powtórz jeszcze raz.':'Powtórz 「才」「被」「然後／後來／以後」.'}</p><p>Poprawne odpowiedzi: ${correct} / ${questions.length}</p><button class="btn" onclick="location.reload()">Zagraj ponownie</button></div>`}
 </script>
+</body>
+</html>
+
 </body>
 </html>
