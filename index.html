@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ANDREWWELCOME｜Grammar Drag Game</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Arial,'Noto Sans TC','Microsoft JhengHei',sans-serif;background:linear-gradient(135deg,#fff4a8,#ffd14a 55%,#ffbd59);color:#17351f}.app{max-width:1100px;margin:0 auto;padding:26px 16px 48px}.hidden{display:none!important}.cover{min-height:82vh;display:flex;align-items:center;justify-content:center;text-align:center}.card{background:rgba(255,255,255,.94);border:4px solid rgba(255,204,44,.95);border-radius:30px;box-shadow:0 18px 42px rgba(0,0,0,.16);padding:28px;margin-top:18px}.cover h1{font-size:64px;margin:0 0 16px;letter-spacing:2px}.cover p{font-size:22px;margin:10px 0 26px;line-height:1.5}.btn{border:0;border-radius:18px;background:#17351f;color:#fff;padding:14px 26px;font-size:19px;font-weight:800;cursor:pointer;box-shadow:0 6px 0 #08180d;margin:6px}.btn:active{transform:translateY(3px);box-shadow:0 3px 0 #08180d}.btn.secondary{background:#707070;box-shadow:0 6px 0 #3a3a3a}.top{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px}.pill{background:#17351f;color:#fff;border-radius:999px;padding:9px 14px;font-weight:800;white-space:nowrap}.progress{height:15px;background:#eee;border-radius:999px;overflow:hidden;flex:1}.bar{height:100%;width:0;background:#35ad5b;transition:.25s}.section{font-size:16px;color:#666;font-weight:900}.qtitle{font-size:28px;font-weight:900;line-height:1.35;margin:12px 0}.hint{background:#fff7ce;border-left:7px solid #f2bf00;border-radius:14px;padding:13px 15px;margin:10px 0 18px;line-height:1.55}.zh{font-size:29px;font-weight:900;line-height:1.45}.pl{font-size:24px;font-weight:900;line-height:1.4;color:#253b2b}.twobox{display:grid;grid-template-columns:1fr 1fr;gap:12px}.mini{background:#fff;border:2px solid #e5e5e5;border-radius:16px;padding:13px}.answerBox{background:#f4f4f4;border:4px dashed #aaa;min-height:88px;border-radius:20px;padding:12px;display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin:12px 0}.wordbank{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}.tile{background:#fff;border:3px solid #17351f;border-radius:15px;padding:10px 14px;font-size:23px;font-weight:900;cursor:grab;box-shadow:0 4px 0 rgba(0,0,0,.20);user-select:none}.tile:active{cursor:grabbing;transform:scale(.98)}.answerBox .tile{cursor:pointer}.feedback{font-size:20px;font-weight:900;min-height:42px;margin:12px 0}.ok{color:#16833a}.bad{color:#c62828}.correctFrame{border-color:#2eae54!important;background:#eaffef!important}.wrongFrame{border-color:#d52b2b!important;background:#ffecec!important}.meta{font-size:15px;color:#666;line-height:1.5}.result{text-align:center}.score{font-size:72px;font-weight:1000;margin:14px 0;color:#17351f}@media(max-width:760px){.cover h1{font-size:42px}.qtitle{font-size:23px}.zh{font-size:24px}.pl{font-size:21px}.tile{font-size:20px}.twobox{grid-template-columns:1fr}.top{gap:8px}.pill{font-size:14px;padding:8px 10px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="cover" class="cover">
+    <div class="card">
+      <h1>ANDREWWELCOME</h1>
+      <p>Gra gramatyczna｜Przeciągnij klocki i ułóż poprawne zdanie.</p>
+      <p><b>然後 / 後來 / 以後</b>｜<b>才</b>｜<b>被</b>｜綜合翻譯</p>
+      <button class="btn" onclick="startGame()">Dalej</button>
+    </div>
+  </div>
+  <div id="game" class="hidden">
+    <div class="top"><div class="pill" id="count">1 / 50</div><div class="progress"><div class="bar" id="bar"></div></div><div class="pill" id="points">0 pkt</div></div>
+    <div class="card" id="questionCard"></div>
+  </div>
+</div>
+<script>
+const rawQuestions = [
+  {
+    "section": "Etap 1｜然後 / 後來 / 以後",
+    "mode": "translate",
+    "instruction": "Ułóż chińskie zdanie z klocków. Zwróć uwagę na: 然後 / 後來 / 以後.",
+    "source": "Najpierw kupuję bilet, potem wchodzę do środka.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我",
+      "先",
+      "買票",
+      "，",
+      "然後",
+      "進去",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "可是",
+      "所以"
+    ]
+  },
+  {
+    "section": "Etap 1｜然後 / 後來 / 以後",
+    "mode": "translate",
+    "instruction": "Ułóż chińskie zdanie z klocków. Zwróć uwagę na: 然後 / 後來 / 以後.",
+    "source": "Wcześniej nie chciałem jechać nad morze, później zmieniłem zdanie.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我",
+      "本來",
+      "不想",
+      "去海邊",
+      "，",
+      "後來",
+      "改變",
+      "想法",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "可是",
+      "所以"
+    ]
+  },
+  {
+    "section": "Etap 1｜然後 / 後來 / 以後",
+    "mode": "translate",
+    "instruction": "Ułóż chińskie zdanie z klocków. Zwróć uwagę na: 然後 / 後來 / 以後.",
+    "source": "Po powrocie do hotelu zadzwonię do ciebie.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我",
+      "回到",
+      "飯店",
+      "以後",
+      "會",
+      "打電話",
+      "給你",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "可是",
+      "所以"
+    ]
+  },
+  {
+    "section": "Etap 1｜然後 / 後來 / 以後",
+    "mode": "translate",
+    "instruction": "Ułóż chińskie zdanie z klocków. Zwróć uwagę na: 然後 / 後來 / 以後.",
+    "source": "Najpierw sprawdzamy mapę, potem idziemy do nocnego targu.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我們",
+      "先",
+      "看地圖",
+      "，",
+      "然後",
+      "去",
+      "夜市",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "可是",
+      "所以"
+    ]
+  },
+  {
+    "section": "Etap 1｜然後 / 後來 / 以後",
+    "mode": "translate",
+    "instruction": "Ułóż chińskie zdanie z klocków. Zwróć uwagę na: 然後 / 後來 / 以後.",
+    "source": "Na początku nie lubił gór, później zakochał się w tym miejscu.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "他",
+      "一開始",
+      "不喜歡",
+      "山上",
+      "，",
+      "後來",
+      "愛上",
+      "那個地方",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "可是",
+      "所以"
+    ]
+  },
+  {
+    "section": "Etap 1｜然後 / 後來 / 以後",
+    "mode": "translate",
+    "instruction": "Ułóż chińskie zdanie z klocków. Zwróć uwagę na: 然後 / 後來 / 以後.",
+    "source": "Po zjedzeniu obiadu pójdziemy nad jezioro.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我們",
+      "吃完",
+      "午餐",
+      "以後",
+      "去",
+      "湖邊",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "可是",
+      "所以"
+    ]
+  },
+  {
+    "section": "Etap 1｜然後 / 後來 / 以後",
+    "mode": "translate",
+    "instruction": "Ułóż chińskie zdanie z klocków. Zwróć uwagę na: 然後 / 後來 / 以後.",
+    "source": "Najpierw robię zdjęcia, potem kupuję coś do picia.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我",
+      "先",
+      "拍照",
+      "，",
+      "然後",
+      "買",
+      "飲料",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "可是",
+      "所以"
+    ]
+  },
+  {
+    "section": "Etap 1｜然後 / 後來 / 以後",
+    "mode": "translate",
+    "instruction": "Ułóż chińskie zdanie z klocków. Zwróć uwagę na: 然後 / 後來 / 以後.",
+    "source": "Wcześniej bała się podróżować sama, później poczuła się odważniejsza.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "她",
+      "以前",
+      "怕",
+      "一個人",
+      "旅行",
+      "，",
+      "後來",
+      "比較",
+      "勇敢",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "可是",
+      "所以"
+    ]
+  },
+  {
+    "section": "Etap 1｜然後 / 後來 / 以後",
+    "mode": "translate",
+    "instruction": "Ułóż chińskie zdanie z klocków. Zwróć uwagę na: 然後 / 後來 / 以後.",
+    "source": "Po przyjeździe do Taichungu chcę najpierw coś zjeść.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "到",
+      "台中",
+      "以後",
+      "我",
+      "想",
+      "先",
+      "吃東西",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "可是",
+      "所以"
+    ]
+  },
+  {
+    "section": "Etap 1｜然後 / 後來 / 以後",
+    "mode": "translate",
+    "instruction": "Ułóż chińskie zdanie z klocków. Zwróć uwagę na: 然後 / 後來 / 以後.",
+    "source": "Najpierw pytamy znajomego, potem rezerwujemy nocleg.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我們",
+      "先",
+      "問朋友",
+      "，",
+      "然後",
+      "訂",
+      "民宿",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "可是",
+      "所以"
+    ]
+  },
+  {
+    "section": "Etap 2｜才",
+    "mode": "combine",
+    "instruction": "Połącz A + B. Użyj 「才」 = dopiero po A dzieje się B.",
+    "source": null,
+    "a": "我先查交通。",
+    "b": "我知道怎麼去。",
+    "answer": [
+      "我",
+      "先",
+      "查",
+      "交通",
+      "，",
+      "才",
+      "知道",
+      "怎麼",
+      "去",
+      "。"
+    ],
+    "extras": [
+      "然後",
+      "後來",
+      "以後",
+      "被"
+    ]
+  },
+  {
+    "section": "Etap 2｜才",
+    "mode": "combine",
+    "instruction": "Połącz A + B. Użyj 「才」 = dopiero po A dzieje się B.",
+    "source": null,
+    "a": "他先休息一下。",
+    "b": "他有力氣爬山。",
+    "answer": [
+      "他",
+      "先",
+      "休息",
+      "一下",
+      "，",
+      "才",
+      "有力氣",
+      "爬山",
+      "。"
+    ],
+    "extras": [
+      "然後",
+      "後來",
+      "以後",
+      "被"
+    ]
+  },
+  {
+    "section": "Etap 2｜才",
+    "mode": "combine",
+    "instruction": "Połącz A + B. Użyj 「才」 = dopiero po A dzieje się B.",
+    "source": null,
+    "a": "我們買好票。",
+    "b": "我們可以進去。",
+    "answer": [
+      "我們",
+      "買好",
+      "票",
+      "，",
+      "才",
+      "可以",
+      "進去",
+      "。"
+    ],
+    "extras": [
+      "然後",
+      "後來",
+      "以後",
+      "被"
+    ]
+  },
+  {
+    "section": "Etap 2｜才",
+    "mode": "combine",
+    "instruction": "Połącz A + B. Użyj 「才」 = dopiero po A dzieje się B.",
+    "source": null,
+    "a": "你把錢包收好。",
+    "b": "比較安全。",
+    "answer": [
+      "你",
+      "把錢包",
+      "收好",
+      "，",
+      "才",
+      "比較",
+      "安全",
+      "。"
+    ],
+    "extras": [
+      "然後",
+      "後來",
+      "以後",
+      "被"
+    ]
+  },
+  {
+    "section": "Etap 2｜才",
+    "mode": "combine",
+    "instruction": "Połącz A + B. Użyj 「才」 = dopiero po A dzieje się B.",
+    "source": null,
+    "a": "我問了服務員。",
+    "b": "我找到洗手間。",
+    "answer": [
+      "我",
+      "問了",
+      "服務員",
+      "，",
+      "才",
+      "找到",
+      "洗手間",
+      "。"
+    ],
+    "extras": [
+      "然後",
+      "後來",
+      "以後",
+      "被"
+    ]
+  },
+  {
+    "section": "Etap 2｜才",
+    "mode": "combine",
+    "instruction": "Połącz A + B. Użyj 「才」 = dopiero po A dzieje się B.",
+    "source": null,
+    "a": "她看了天氣。",
+    "b": "她決定帶雨傘。",
+    "answer": [
+      "她",
+      "看了",
+      "天氣",
+      "，",
+      "才",
+      "決定",
+      "帶雨傘",
+      "。"
+    ],
+    "extras": [
+      "然後",
+      "後來",
+      "以後",
+      "被"
+    ]
+  },
+  {
+    "section": "Etap 2｜才",
+    "mode": "combine",
+    "instruction": "Połącz A + B. Użyj 「才」 = dopiero po A dzieje się B.",
+    "source": null,
+    "a": "我們先訂民宿。",
+    "b": "我們安心出發。",
+    "answer": [
+      "我們",
+      "先",
+      "訂",
+      "民宿",
+      "，",
+      "才",
+      "安心",
+      "出發",
+      "。"
+    ],
+    "extras": [
+      "然後",
+      "後來",
+      "以後",
+      "被"
+    ]
+  },
+  {
+    "section": "Etap 2｜才",
+    "mode": "combine",
+    "instruction": "Połącz A + B. Użyj 「才」 = dopiero po A dzieje się B.",
+    "source": null,
+    "a": "我看完菜單。",
+    "b": "我知道要點什麼。",
+    "answer": [
+      "我",
+      "看完",
+      "菜單",
+      "，",
+      "才",
+      "知道",
+      "要點",
+      "什麼",
+      "。"
+    ],
+    "extras": [
+      "然後",
+      "後來",
+      "以後",
+      "被"
+    ]
+  },
+  {
+    "section": "Etap 2｜才",
+    "mode": "combine",
+    "instruction": "Połącz A + B. Użyj 「才」 = dopiero po A dzieje się B.",
+    "source": null,
+    "a": "他練習了很多次。",
+    "b": "他說得比較自然。",
+    "answer": [
+      "他",
+      "練習了",
+      "很多次",
+      "，",
+      "才",
+      "說得",
+      "比較",
+      "自然",
+      "。"
+    ],
+    "extras": [
+      "然後",
+      "後來",
+      "以後",
+      "被"
+    ]
+  },
+  {
+    "section": "Etap 2｜才",
+    "mode": "combine",
+    "instruction": "Połącz A + B. Użyj 「才」 = dopiero po A dzieje się B.",
+    "source": null,
+    "a": "你先把名字寫上。",
+    "b": "不會弄丟。",
+    "answer": [
+      "你",
+      "先",
+      "把名字",
+      "寫上",
+      "，",
+      "才",
+      "不會",
+      "弄丟",
+      "。"
+    ],
+    "extras": [
+      "然後",
+      "後來",
+      "以後",
+      "被"
+    ]
+  },
+  {
+    "section": "Etap 3｜被",
+    "mode": "rewrite",
+    "instruction": "Zmień zdanie na konstrukcję z 「被」.",
+    "source": "有人偷了我的票。",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我的",
+      "票",
+      "被",
+      "偷了",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "然後",
+      "後來",
+      "以後"
+    ]
+  },
+  {
+    "section": "Etap 3｜被",
+    "mode": "rewrite",
+    "instruction": "Zmień zdanie na konstrukcję z 「被」.",
+    "source": "朋友拿走了我的外套。",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我的",
+      "外套",
+      "被",
+      "朋友",
+      "拿走了",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "然後",
+      "後來",
+      "以後"
+    ]
+  },
+  {
+    "section": "Etap 3｜被",
+    "mode": "rewrite",
+    "instruction": "Zmień zdanie na konstrukcję z 「被」.",
+    "source": "服務員寫錯了他的名字。",
+    "a": null,
+    "b": null,
+    "answer": [
+      "他的",
+      "名字",
+      "被",
+      "服務員",
+      "寫錯了",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "然後",
+      "後來",
+      "以後"
+    ]
+  },
+  {
+    "section": "Etap 3｜被",
+    "mode": "rewrite",
+    "instruction": "Zmień zdanie na konstrukcję z 「被」.",
+    "source": "老師聽見了我們的對話。",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我們",
+      "的",
+      "對話",
+      "被",
+      "老師",
+      "聽見了",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "然後",
+      "後來",
+      "以後"
+    ]
+  },
+  {
+    "section": "Etap 3｜被",
+    "mode": "rewrite",
+    "instruction": "Zmień zdanie na konstrukcję z 「被」.",
+    "source": "觀光客弄丟了錢包。",
+    "a": null,
+    "b": null,
+    "answer": [
+      "錢包",
+      "被",
+      "觀光客",
+      "弄丟了",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "然後",
+      "後來",
+      "以後"
+    ]
+  },
+  {
+    "section": "Etap 3｜被",
+    "mode": "rewrite",
+    "instruction": "Zmień zdanie na konstrukcję z 「被」.",
+    "source": "妹妹喝完了我的珍珠奶茶。",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我的",
+      "珍珠奶茶",
+      "被",
+      "妹妹",
+      "喝完了",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "然後",
+      "後來",
+      "以後"
+    ]
+  },
+  {
+    "section": "Etap 3｜被",
+    "mode": "rewrite",
+    "instruction": "Zmień zdanie na konstrukcję z 「被」.",
+    "source": "狗咬了那個人的鞋子。",
+    "a": null,
+    "b": null,
+    "answer": [
+      "那個人",
+      "的",
+      "鞋子",
+      "被",
+      "狗",
+      "咬了",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "然後",
+      "後來",
+      "以後"
+    ]
+  },
+  {
+    "section": "Etap 3｜被",
+    "mode": "rewrite",
+    "instruction": "Zmień zdanie na konstrukcję z 「被」.",
+    "source": "同學放錯了我的書。",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我的",
+      "書",
+      "被",
+      "同學",
+      "放錯了",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "然後",
+      "後來",
+      "以後"
+    ]
+  },
+  {
+    "section": "Etap 3｜被",
+    "mode": "rewrite",
+    "instruction": "Zmień zdanie na konstrukcję z 「被」.",
+    "source": "大風吹走了帽子。",
+    "a": null,
+    "b": null,
+    "answer": [
+      "帽子",
+      "被",
+      "大風",
+      "吹走了",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "然後",
+      "後來",
+      "以後"
+    ]
+  },
+  {
+    "section": "Etap 3｜被",
+    "mode": "rewrite",
+    "instruction": "Zmień zdanie na konstrukcję z 「被」.",
+    "source": "店員找錯了我的錢。",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我的",
+      "錢",
+      "被",
+      "店員",
+      "找錯了",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "然後",
+      "後來",
+      "以後"
+    ]
+  },
+  {
+    "section": "Etap 4｜綜合翻譯題",
+    "mode": "translate",
+    "instruction": "Przetłumacz na chiński. Ułóż poprawne zdanie z klocków.",
+    "source": "Najpierw idę na plażę, potem jem kolację.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我",
+      "先",
+      "去",
+      "沙灘",
+      "，",
+      "然後",
+      "吃晚餐",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "然後",
+      "後來",
+      "以後",
+      "很",
+      "也"
+    ]
+  },
+  {
+    "section": "Etap 4｜綜合翻譯題",
+    "mode": "translate",
+    "instruction": "Przetłumacz na chiński. Ułóż poprawne zdanie z klocków.",
+    "source": "Po przyjeździe do hotelu odpocznę chwilę.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "到",
+      "飯店",
+      "以後",
+      "我",
+      "會",
+      "休息",
+      "一下",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "然後",
+      "後來",
+      "以後",
+      "很",
+      "也"
+    ]
+  },
+  {
+    "section": "Etap 4｜綜合翻譯題",
+    "mode": "translate",
+    "instruction": "Przetłumacz na chiński. Ułóż poprawne zdanie z klocków.",
+    "source": "Wcześniej nie lubiłem piwa, później je polubiłem.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我",
+      "以前",
+      "不喜歡",
+      "啤酒",
+      "，",
+      "後來",
+      "喜歡了",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "然後",
+      "後來",
+      "以後",
+      "很",
+      "也"
+    ]
+  },
+  {
+    "section": "Etap 4｜綜合翻譯題",
+    "mode": "translate",
+    "instruction": "Przetłumacz na chiński. Ułóż poprawne zdanie z klocków.",
+    "source": "Dopiero po sprawdzeniu mapy wiem, jak iść.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我",
+      "看了",
+      "地圖",
+      "，",
+      "才",
+      "知道",
+      "怎麼",
+      "走",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "然後",
+      "後來",
+      "以後",
+      "很",
+      "也"
+    ]
+  },
+  {
+    "section": "Etap 4｜綜合翻譯題",
+    "mode": "translate",
+    "instruction": "Przetłumacz na chiński. Ułóż poprawne zdanie z klocków.",
+    "source": "Mój portfel został skradziony.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我的",
+      "錢包",
+      "被",
+      "偷了",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "然後",
+      "後來",
+      "以後",
+      "很",
+      "也"
+    ]
+  },
+  {
+    "section": "Etap 4｜綜合翻譯題",
+    "mode": "translate",
+    "instruction": "Przetłumacz na chiński. Ułóż poprawne zdanie z klocków.",
+    "source": "Najpierw kup bilet, dopiero wtedy możesz wejść.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "你",
+      "先",
+      "買票",
+      "，",
+      "才",
+      "可以",
+      "進去",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "然後",
+      "後來",
+      "以後",
+      "很",
+      "也"
+    ]
+  },
+  {
+    "section": "Etap 4｜綜合翻譯題",
+    "mode": "translate",
+    "instruction": "Przetłumacz na chiński. Ułóż poprawne zdanie z klocków.",
+    "source": "Po zjedzeniu obiadu weź lekarstwo.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "你",
+      "吃完",
+      "午餐",
+      "以後",
+      "再",
+      "吃藥",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "然後",
+      "後來",
+      "以後",
+      "很",
+      "也"
+    ]
+  },
+  {
+    "section": "Etap 4｜綜合翻譯題",
+    "mode": "translate",
+    "instruction": "Przetłumacz na chiński. Ułóż poprawne zdanie z klocków.",
+    "source": "Mój telefon został zabrany przez kolegę.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我的",
+      "手機",
+      "被",
+      "朋友",
+      "拿走了",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "然後",
+      "後來",
+      "以後",
+      "很",
+      "也"
+    ]
+  },
+  {
+    "section": "Etap 4｜綜合翻譯題",
+    "mode": "translate",
+    "instruction": "Przetłumacz na chiński. Ułóż poprawne zdanie z klocków.",
+    "source": "Najpierw pytam znajomego, potem szukam w internecie.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我",
+      "先",
+      "問朋友",
+      "，",
+      "然後",
+      "上網",
+      "查",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "然後",
+      "後來",
+      "以後",
+      "很",
+      "也"
+    ]
+  },
+  {
+    "section": "Etap 4｜綜合翻譯題",
+    "mode": "translate",
+    "instruction": "Przetłumacz na chiński. Ułóż poprawne zdanie z klocków.",
+    "source": "Dopiero po odpoczynku mam siłę chodzić.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我",
+      "休息了",
+      "一下",
+      "，",
+      "才",
+      "有力氣",
+      "走路",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "然後",
+      "後來",
+      "以後",
+      "很",
+      "也"
+    ]
+  },
+  {
+    "section": "Etap 4｜綜合翻譯題",
+    "mode": "translate",
+    "instruction": "Przetłumacz na chiński. Ułóż poprawne zdanie z klocków.",
+    "source": "Jego imię zostało źle zapisane przez kelnera.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "他的",
+      "名字",
+      "被",
+      "服務員",
+      "寫錯了",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "然後",
+      "後來",
+      "以後",
+      "很",
+      "也"
+    ]
+  },
+  {
+    "section": "Etap 4｜綜合翻譯題",
+    "mode": "translate",
+    "instruction": "Przetłumacz na chiński. Ułóż poprawne zdanie z klocków.",
+    "source": "Po powrocie do domu zadzwoń do mnie.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "你",
+      "回家",
+      "以後",
+      "打電話",
+      "給我",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "然後",
+      "後來",
+      "以後",
+      "很",
+      "也"
+    ]
+  },
+  {
+    "section": "Etap 4｜綜合翻譯題",
+    "mode": "translate",
+    "instruction": "Przetłumacz na chiński. Ułóż poprawne zdanie z klocków.",
+    "source": "Wcześniej bałem się nocnego targu, później uznałem, że jest ciekawy.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我",
+      "以前",
+      "怕",
+      "夜市",
+      "，",
+      "後來",
+      "覺得",
+      "很有趣",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "然後",
+      "後來",
+      "以後",
+      "很",
+      "也"
+    ]
+  },
+  {
+    "section": "Etap 4｜綜合翻譯題",
+    "mode": "translate",
+    "instruction": "Przetłumacz na chiński. Ułóż poprawne zdanie z klocków.",
+    "source": "Dopiero po zapytaniu wielu osób znalazłem ten sklep.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我",
+      "問了",
+      "很多人",
+      "，",
+      "才",
+      "找到",
+      "這家店",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "然後",
+      "後來",
+      "以後",
+      "很",
+      "也"
+    ]
+  },
+  {
+    "section": "Etap 4｜綜合翻譯題",
+    "mode": "translate",
+    "instruction": "Przetłumacz na chiński. Ułóż poprawne zdanie z klocków.",
+    "source": "Nasze słowa zostały usłyszane przez nauczyciela.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我們",
+      "說的話",
+      "被",
+      "老師",
+      "聽見了",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "然後",
+      "後來",
+      "以後",
+      "很",
+      "也"
+    ]
+  },
+  {
+    "section": "Etap 4｜綜合翻譯題",
+    "mode": "translate",
+    "instruction": "Przetłumacz na chiński. Ułóż poprawne zdanie z klocków.",
+    "source": "Najpierw idziemy nad jezioro, potem robimy zdjęcia.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我們",
+      "先",
+      "去",
+      "湖邊",
+      "，",
+      "然後",
+      "拍照",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "然後",
+      "後來",
+      "以後",
+      "很",
+      "也"
+    ]
+  },
+  {
+    "section": "Etap 4｜綜合翻譯題",
+    "mode": "translate",
+    "instruction": "Przetłumacz na chiński. Ułóż poprawne zdanie z klocków.",
+    "source": "Dopiero po zarezerwowaniu pensjonatu czuję spokój.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我",
+      "訂了",
+      "民宿",
+      "，",
+      "才",
+      "覺得",
+      "安心",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "然後",
+      "後來",
+      "以後",
+      "很",
+      "也"
+    ]
+  },
+  {
+    "section": "Etap 4｜綜合翻譯題",
+    "mode": "translate",
+    "instruction": "Przetłumacz na chiński. Ułóż poprawne zdanie z klocków.",
+    "source": "Mój bagaż został położony na krześle.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "我的",
+      "行李",
+      "被",
+      "放在",
+      "椅子上了",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "然後",
+      "後來",
+      "以後",
+      "很",
+      "也"
+    ]
+  },
+  {
+    "section": "Etap 4｜綜合翻譯題",
+    "mode": "translate",
+    "instruction": "Przetłumacz na chiński. Ułóż poprawne zdanie z klocków.",
+    "source": "Po wyjściu z domu uważaj na bezpieczeństwo.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "你",
+      "出門",
+      "以後",
+      "要",
+      "注意",
+      "安全",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "然後",
+      "後來",
+      "以後",
+      "很",
+      "也"
+    ]
+  },
+  {
+    "section": "Etap 4｜綜合翻譯題",
+    "mode": "translate",
+    "instruction": "Przetłumacz na chiński. Ułóż poprawne zdanie z klocków.",
+    "source": "Wcześniej nie chciała jechać do Taichungu, później zdecydowała się pojechać.",
+    "a": null,
+    "b": null,
+    "answer": [
+      "她",
+      "本來",
+      "不想",
+      "去台中",
+      "，",
+      "後來",
+      "決定",
+      "去了",
+      "。"
+    ],
+    "extras": [
+      "才",
+      "被",
+      "然後",
+      "後來",
+      "以後",
+      "很",
+      "也"
+    ]
+  }
+];
+const questions = rawQuestions.map((q,i)=>({...q,id:i}));
+let idx=0, correct=0, locked=false;
+function shuffle(arr){let a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function startGame(){document.getElementById('cover').classList.add('hidden');document.getElementById('game').classList.remove('hidden');render()}
+function updateTop(){document.getElementById('count').textContent=(idx+1)+' / '+questions.length;document.getElementById('points').textContent=Math.round(correct/questions.length*100)+' pkt';document.getElementById('bar').style.width=(idx/questions.length*100)+'%'}
+function render(){locked=false;updateTop();const q=questions[idx];const el=document.getElementById('questionCard');let prompt='';
+ if(q.mode==='combine'){prompt=`<div class="twobox"><div class="mini"><b>A</b><div class="zh">${q.a}</div></div><div class="mini"><b>B</b><div class="zh">${q.b}</div></div></div>`}
+ else if(q.mode==='translate'){prompt=`<div class="hint"><b>Polski:</b><div class="pl">${q.source}</div></div>`}
+ else{prompt=`<div class="hint"><b>Zdanie:</b><div class="zh">${q.source}</div></div>`}
+ el.innerHTML=`<div class="section">${q.section}</div><div class="qtitle">${q.instruction}</div>${prompt}<div id="answerBox" class="answerBox" ondragover="event.preventDefault()" ondrop="dropTile(event)"></div><div id="wordbank" class="wordbank"></div><div id="fb" class="feedback"></div><button class="btn" onclick="checkAnswer()">Sprawdź</button><button id="nextBtn" class="btn secondary hidden" onclick="nextQ()">Dalej</button><div class="meta">Przeciągnij klocki do pola odpowiedzi albo kliknij klocek. Kliknięcie klocka w odpowiedzi cofa go na dół.</div>`;
+ const bank=document.getElementById('wordbank');shuffle([...q.answer,...q.extras]).forEach((w,i)=>bank.appendChild(makeTile(w,i)))}
+function makeTile(word,i){const d=document.createElement('div');d.className='tile';d.draggable=true;d.dataset.word=word;d.id='tile_'+idx+'_'+i;d.textContent=word;d.ondragstart=e=>e.dataTransfer.setData('text/plain',d.id);d.onclick=()=>{if(locked)return;const box=document.getElementById('answerBox'),bank=document.getElementById('wordbank');(d.parentElement.id==='wordbank'?box:bank).appendChild(d)};return d}
+function dropTile(e){if(locked)return;const id=e.dataTransfer.getData('text/plain');const tile=document.getElementById(id);if(tile)e.currentTarget.appendChild(tile)}
+function checkAnswer(){if(locked)return;locked=true;const q=questions[idx];const box=document.getElementById('answerBox');const got=[...box.querySelectorAll('.tile')].map(t=>t.dataset.word);const fb=document.getElementById('fb');const answerText=q.answer.join('');
+ if(got.join('|')===q.answer.join('|')){correct++;box.classList.add('correctFrame');fb.innerHTML=`<span class="ok">Dobrze! ✅</span><div class="zh">${answerText}</div>`}
+ else{box.classList.add('wrongFrame');fb.innerHTML=`<span class="bad">Źle. ❌ Poprawna odpowiedź:</span><div class="zh">${answerText}</div>`}
+ document.getElementById('nextBtn').classList.remove('hidden');updateTop()}
+function nextQ(){idx++;if(idx>=questions.length)finish();else render()}
+function finish(){const finalScore=Math.round(correct/questions.length*100);document.getElementById('bar').style.width='100%';document.getElementById('points').textContent=finalScore+' pkt';document.getElementById('count').textContent='Koniec';document.getElementById('questionCard').innerHTML=`<div class="result"><h2>Wynik końcowy</h2><div class="score">${finalScore}/100</div><p class="qtitle">${finalScore>=90?'Świetnie!':finalScore>=75?'Bardzo dobrze!':finalScore>=60?'Nieźle, powtórz jeszcze raz.':'Powtórz 「才」「被」「然後／後來／以後」.'}</p><p>Poprawne odpowiedzi: ${correct} / ${questions.length}</p><button class="btn" onclick="location.reload()">Zagraj ponownie</button></div>`}
+</script>
+</body>
+</html>
